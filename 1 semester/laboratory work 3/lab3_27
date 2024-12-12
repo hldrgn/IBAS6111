@@ -1,0 +1,86 @@
+#include <stdio.h>
+#include <locale.h>
+#include <string.h>
+#include <ctype.h>
+#include <windows.h>
+
+#define S 1000
+#define N 1500
+#define WORD_MAX 100
+
+void enter_text(char s[S]) {
+    printf("Введите текст (или пустую строку для выхода):\n");
+    fgets(s, S, stdin);
+    s[strcspn(s, "\n")] = 0;
+}
+
+void process_text(char s[S], char s_ready[N], char first_letter, char end_letter) {
+    int i = 0, j = 0, k = 0, g = 0;
+    char word[WORD_MAX];
+
+    while (s[i] != '\0') {
+        while (isspace(s[i]) && s[i] != '\0') i++;
+        if (s[i] == '\0') break;
+
+        j = i;
+        while (!isspace(s[j]) && s[j] != '\0' && j < i + WORD_MAX - 1) j++;
+
+        if (j == i) {
+            i++;
+            continue;
+        }
+
+        int word_len = j - i;
+        strncpy(word, s + i, word_len);
+        word[word_len] = '\0';
+
+        char first_word_char = tolower(word[0]);
+        char last_word_char = tolower(word[word_len - 1]);
+
+        if (first_word_char == first_letter && last_word_char == end_letter) {
+            k++;
+            snprintf(s_ready + g, N - g, "(%s)", word);
+            g += strlen(word) + 2;
+        }
+        else {
+            snprintf(s_ready + g, N - g, "%s", word);
+            g += strlen(word);
+        }
+
+        if (s[j] != '\0') {
+            s_ready[g++] = s[j];
+        }
+        i = j + 1;
+    }
+    s_ready[g] = '\0';
+
+    setlocale(LC_ALL, "");
+    printf("%d\n", k);
+    printf("%s\n", (k > 0) ? s_ready : s);
+}
+
+int main() {
+    char s[S], s_ready[N], first_letter, end_letter;
+    char choice;
+
+    SetConsoleCP(1251);
+    setlocale(LC_ALL, "");
+
+    do {
+        enter_text(s);
+        if (strlen(s) == 0) break; // Выход, если строка пустая
+
+        printf("Введите первую и последнюю буквы: ");
+        scanf(" %c %c", &first_letter, &end_letter);
+        getchar();
+
+        process_text(s, s_ready, tolower(first_letter), tolower(end_letter));
+
+        printf("Продолжить (y/n)? ");
+        scanf(" %c", &choice);
+        getchar(); // Очистка буфера
+
+    } while (tolower(choice) == 'y');
+
+    return 0;
+}
